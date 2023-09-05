@@ -8,6 +8,21 @@ endif(UNIX AND NOT APPLE)
 target_link_libraries(afanasy ${PYTHON_LIBRARIES})
 
 
+
+if (UNIX)
+   set(rdkafka_libs rdkafka++ rdkafka lz4 )
+   
+   foreach(lib ${rdkafka_libs})
+         target_link_libraries(
+               afanasy
+               ${CMAKE_CURRENT_SOURCE_DIR}/../vendors/ubuntu/rdkafka/lib/lib${lib}.a
+         )
+   endforeach(lib ${rdkafka_libs})
+
+   target_link_libraries(afanasy rt dl util m)
+
+endif(UNIX)
+
 if (WIN32 AND MSVC)
    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
       set(BUILD_TYPE_PATH "debug")

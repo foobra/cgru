@@ -17,6 +17,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unordered_map>
 
 #include "../include/afanasy.h"
 
@@ -50,9 +51,8 @@ extern bool AFRunning;
 // Thread functions:
 void threadAcceptClient( void * i_arg );
 void threadRunCycle( void * i_args);
-#ifdef __linux__
 void syncRenderRuntimeStatusToKafka(void *i_args);
-#endif
+
 
 #ifdef WINNT
 #define STDERR_FILENO 2
@@ -360,10 +360,8 @@ int main(int argc, char *argv[])
 	// All 'brains' are there.
 	DlThread RunCycleThread;
 	RunCycleThread.Start( &threadRunCycle, &threadArgs);
-	#ifdef __linux__
 	DlThread SyncRendersInfoThread;
 	SyncRendersInfoThread.Start(&syncRenderRuntimeStatusToKafka, &threadArgs);
-	#endif
 
 	/* Do nothing since everything is done in our threads. */
 	while( AFRunning )
@@ -383,17 +381,15 @@ int main(int argc, char *argv[])
 	// every new cycle it checks running external valiable
 	RunCycleThread.Join();
 
-	#ifdef __linux__
+
 	SyncRendersInfoThread.Join();
-	authenThread.join();
-	#endif
 	delete socketsProcessing;
 
 	AF_LOG << "Exiting process...";
 
 	return 0;
 }
-#ifdef __linux__
+
 void syncRenderRuntimeStatusToKafka(void *i_args)
 {
 	af::AfKafka kafka;
@@ -421,7 +417,7 @@ void syncRenderRuntimeStatusToKafka(void *i_args)
 			if (cache.count(render->getName()) == 0)
 			{
 				// sync new render status to kafka
-				cache.insert(pair<std::string, int64_t>(render->getName(), render->getState()));
+				cache.insert(std::pair<std::string, int64_t>(render->getName(), render->getState()));
 				AFCommon::QueueLog(
 					"Name:" + render->getName() + " state:" + std::to_string(render->getState()));
 				render->stateChange("farm_resources_topic", af::Environment::getRegionId());
@@ -457,4 +453,3 @@ void syncRenderRuntimeStatusToKafka(void *i_args)
 		cycle++;
 	}
 }
-#endif
