@@ -80,6 +80,10 @@ if(POLICY CMP0020)
 	cmake_policy(SET CMP0020 NEW)
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+	set(ENV{AF_EXTRA_LIBS} "$ENV{AF_EXTRA_LIBS};pthread")
+endif()
+
 add_subdirectory(libafanasy)
 add_subdirectory(render)
 add_subdirectory(libafsql)

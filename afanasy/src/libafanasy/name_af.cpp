@@ -40,11 +40,20 @@ bool LaunchProgramV(
 	HANDLE * o_in,
 	HANDLE * o_out,
 	HANDLE * o_err,
-	const char * i_commanline,
-    const char * i_wdir,
+	const wchar_t * i_commanline,
+    const wchar_t * i_wdir,
 	char * i_environ,
     DWORD i_flags,
 	bool alwaysCreateWindow);
+
+std::wstring stringToWideString(const std::string& str)
+{
+	int size = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+	auto wszGBK = std::make_unique<wchar_t[]>(size + 1);
+	memset(wszGBK.get(), 0, size * 2 + 2);
+	MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wszGBK[0], size);
+	return std::wstring(wszGBK.get());
+}
 
 bool af::launchProgram( PROCESS_INFORMATION * o_pinfo,
                        const std::string & i_commandline, const std::string & i_wdir, char * i_environ,
@@ -58,7 +67,12 @@ bool af::launchProgram( PROCESS_INFORMATION * o_pinfo,
 	std::string shell_commandline = af::Environment::getCmdShell() + " ";
 	shell_commandline += i_commandline;
 
-	return LaunchProgramV( o_pinfo, o_in, o_out, o_err, shell_commandline.c_str(), wdir, i_environ, i_flags, alwaysCreateWindow);
+	std::wstring wide_cmd = stringToWideString(shell_commandline);
+
+	std::wstring wide_dir = stringToWideString(wdir);
+
+
+	return LaunchProgramV(o_pinfo, o_in, o_out, o_err, wide_cmd.c_str(), wide_dir.c_str(), i_environ, i_flags, alwaysCreateWindow);
 }
 void af::launchProgram( const std::string & i_commandline, const std::string & i_wdir)
 {

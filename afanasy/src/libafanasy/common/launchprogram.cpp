@@ -48,8 +48,8 @@ bool LaunchProgramV(
 	HANDLE * o_in,
 	HANDLE * o_out,
 	HANDLE * o_err,
-    const char * i_commandline,
-    const char * i_wdir,
+    const wchar_t * i_commandline,
+    const wchar_t * i_wdir,
 	char * i_environ,
     DWORD i_flags,
 	bool alwaysCreateWindow)
@@ -211,10 +211,10 @@ bool LaunchProgramV(
 	
 	// Create the process
 
-	STARTUPINFO startInfo;
+	STARTUPINFOW startInfo;
 	
-	memset(&startInfo, 0, sizeof(STARTUPINFO));
-	startInfo.cb = sizeof(STARTUPINFO);
+	memset(&startInfo, 0, sizeof(STARTUPINFOW));
+	startInfo.cb = sizeof(STARTUPINFOW);
 	if( o_in || o_out || o_err )
 		startInfo.dwFlags = STARTF_USESTDHANDLES;
 /*
@@ -240,10 +240,11 @@ bool LaunchProgramV(
 	else
 		startInfo.hStdError = GetStdHandle(STD_ERROR_HANDLE);
 
-	size_t bufSize = strlen(i_commandline) + 1;
-	char * argsAndProgram = (char *)malloc( bufSize);
-	strncpy( argsAndProgram, i_commandline, bufSize-1);
-	argsAndProgram[bufSize-1] = '\0';
+	// fix by gs, do not copy
+	//size_t bufSize = strlen(i_commandline) + 1;
+	//char * argsAndProgram = (char *)malloc( bufSize);
+	//strncpy( argsAndProgram, i_commandline, bufSize-1);
+	//argsAndProgram[bufSize-1] = '\0';
 
 	/*
 		Check if we have a console by calling GetConsoleScreenBufferInfo().
@@ -257,15 +258,16 @@ bool LaunchProgramV(
 	   ( false == GetConsoleScreenBufferInfo( GetStdHandle( STD_OUTPUT_HANDLE ), &cinfos )))
 		flags = flags | CREATE_NO_WINDOW;
 
-	BOOL processCreated = CreateProcess(
-		0x0, argsAndProgram,
+	BOOL processCreated = CreateProcessW(
+		0x0, const_cast<LPWSTR>(i_commandline), 
 		NULL, NULL,
-		o_in || o_out || o_err,
-		flags,
-		(LPVOID) i_environ, i_wdir,
+		o_in || o_out || o_err, 
+		flags, 
+		(LPVOID)i_environ, const_cast<LPWSTR>(i_wdir), 
 		&startInfo, o_pinfo);
 
-	free(argsAndProgram);
+
+	//free(argsAndProgram);
 
 	// Close the unneeded pipe handles (they were inherited)
 

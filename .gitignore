@@ -1,5 +1,6 @@
 # Any custom folder
 /_*
+build/
 
 # Settings
 config.json
@@ -57,6 +58,7 @@ temp*
 *.zip
 
 # MSVS temporary files
+.vs/
 ipch
 *.pdb
 *.suo
