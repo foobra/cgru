@@ -17,10 +17,10 @@ source ./getrevision.sh $src
 popd > /dev/null
 
 # Process options:
-options=""
-sql="REQUIRED"
-gui="YES"
-fermer="YES"
+sql="NO"
+gui="NO"
+fermer="NO"
+warn="NO"
 for arg in "$@"; do
 	[ $arg == "--nosql" ] && sql="NO" && shift
 	[ $arg == "--nogui" ] && gui="NO" && shift
@@ -98,4 +98,4 @@ case ${DISTRIBUTIVE} in
 esac
 
 # Build:
-cmake . && make $@
+cmake . && make $@ -j`nproc`

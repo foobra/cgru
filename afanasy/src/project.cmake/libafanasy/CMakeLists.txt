@@ -7,5 +7,5 @@ if(UNIX AND NOT APPLE)
 endif(UNIX AND NOT APPLE)
 target_link_libraries(afanasy ${PYTHON_LIBRARIES})
 
-add_definitions(-DCGRU_REVISION=$ENV{CGRU_REVISION})
+# add_definitions(-DCGRU_REVISION=$ENV{CGRU_REVISION})
 add_definitions(-DCGRU_VERSION=$ENV{CGRU_VERSION})

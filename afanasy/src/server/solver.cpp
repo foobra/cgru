@@ -16,6 +16,8 @@
 */
 #include "solver.h"
 
+#include <functional>
+
 #include "../include/afanasy.h"
 #include "../libafanasy/environment.h"
 
