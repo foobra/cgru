@@ -1,6 +1,7 @@
 # Afanasy binaries
 archives
 bin
+!src/project.cmake/vendors/
 
 # TODO: Edit cmake lists so that this RelWithDebInfo is created in bin/
 service/RelWithDebInfo/
