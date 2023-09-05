@@ -3,7 +3,7 @@ if(UNIX)
 endif()
 project(afanasy)
 
-set(CMAKE_BUILD_TYPE "Release")
+# set(CMAKE_BUILD_TYPE "Release")
 
 set( CMAKE_CXX_OUTPUT_EXTENSION ".${CMAKE_HOST_SYSTEM_NAME}.o")
 

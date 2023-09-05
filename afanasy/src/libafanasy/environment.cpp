@@ -673,7 +673,9 @@ Environment::Environment( uint32_t flags, int argc, char** argv )
 	QUIET("CGRU version = '%s'\n", version_cgru.c_str());
 
 	// Build-in version and revision:
+  #ifdef CGRU_VERSION
 	version_compiled = EXPAND(CGRU_VERSION);
+  #endif
 	QUIET("Afanasy build version = '%s'\n", version_compiled.c_str());
 	if (version_cgru.find(version_compiled) == std::string::npos)
 		AF_ERR << "CGRU environment and Afanasy compiled versions mismatch.";
