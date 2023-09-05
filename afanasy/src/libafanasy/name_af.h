@@ -43,6 +43,7 @@
 #include <Python.h>
 
 #include "rapidjson/document.h"
+#include "rdkafkacpp.h"
 typedef rapidjson::Value JSON;
 
 struct sockaddr_storage;
@@ -267,6 +268,7 @@ namespace af
 
 	/// Send a message to all its addresses and receive an answer if needed
 	Msg * sendToServer( Msg * i_msg, bool & o_ok, VerboseMode i_verbose);
+	void sendToKafka(const std::string &infoStr, const std::string &topicName, RdKafka::Producer *producer);
 
 	// Read/Write binary data
 	void rw_bool     ( bool     & boolean,  Msg * msg);

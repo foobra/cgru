@@ -27,6 +27,7 @@
 
 #include "../libafsql/dbconnection.h"
 
+#include "../libafanasy/afkafka.h"
 #include "afcommon.h"
 #include "branchescontainer.h"
 #include "jobcontainer.h"
@@ -49,6 +50,9 @@ extern bool AFRunning;
 // Thread functions:
 void threadAcceptClient( void * i_arg );
 void threadRunCycle( void * i_args);
+#ifdef __linux__
+void syncRenderRuntimeStatusToKafka(void *i_args);
+#endif
 
 #ifdef WINNT
 #define STDERR_FILENO 2
@@ -356,6 +360,10 @@ int main(int argc, char *argv[])
 	// All 'brains' are there.
 	DlThread RunCycleThread;
 	RunCycleThread.Start( &threadRunCycle, &threadArgs);
+	#ifdef __linux__
+	DlThread SyncRendersInfoThread;
+	SyncRendersInfoThread.Start(&syncRenderRuntimeStatusToKafka, &threadArgs);
+	#endif
 
 	/* Do nothing since everything is done in our threads. */
 	while( AFRunning )
@@ -375,9 +383,78 @@ int main(int argc, char *argv[])
 	// every new cycle it checks running external valiable
 	RunCycleThread.Join();
 
+	#ifdef __linux__
+	SyncRendersInfoThread.Join();
+	authenThread.join();
+	#endif
 	delete socketsProcessing;
 
 	AF_LOG << "Exiting process...";
 
 	return 0;
 }
+#ifdef __linux__
+void syncRenderRuntimeStatusToKafka(void *i_args)
+{
+	af::AfKafka kafka;
+	if (!kafka.isSuccessInit()) exit(1);
+	std::unordered_map<std::string, int64_t> cache;
+	uint64_t cycle = 0;
+	int syncKafkaIntervalSec = af::Environment::getSyncKafkaIntervalSec();
+	int syncAllRendersPeriod = af::Environment::getSyncAllRendersPeriod();
+	AF_LOG << "syncKafkaIntervalSec:" << syncKafkaIntervalSec
+		   << " syncAllRendersPeriod:" << syncAllRendersPeriod;
+	while (AFRunning)
+	{
+		AFCommon::QueueLog("begin sync renders info to kafka...");
+		struct timeval startTime, stopTime;
+		gettimeofday(&startTime, NULL);
+
+		// send all renders status info to kafka
+		ThreadArgs *a = (ThreadArgs *)i_args;
+		RenderContainerIt it(a->renders);
+		RenderAf *render = NULL;
+		render = it.render();
+		while (render)
+		{
+			int64_t state = render->getState();
+			if (cache.count(render->getName()) == 0)
+			{
+				// sync new render status to kafka
+				cache.insert(pair<std::string, int64_t>(render->getName(), render->getState()));
+				AFCommon::QueueLog(
+					"Name:" + render->getName() + " state:" + std::to_string(render->getState()));
+				render->stateChange("farm_resources_topic", af::Environment::getRegionId());
+			}
+			else if (syncAllRendersPeriod && cycle % syncAllRendersPeriod == 0)
+			{
+				// sync all renders status to kafka
+				cache[render->getName()] = render->getState();
+				render->stateChange("farm_resources_topic", af::Environment::getRegionId());
+				AFCommon::QueueLog(
+					"[ALL] Name:" + render->getName() + " state:" + std::to_string(render->getState()));
+			}
+			else if (cache[render->getName()] != state)
+			{
+				// sync updated render status to kafka
+				cache[render->getName()] = render->getState();
+				render->stateChange("farm_resources_topic", af::Environment::getRegionId());
+				AFCommon::QueueLog(
+					"Name:" + render->getName() + " state:" + std::to_string(render->getState()));
+			}
+
+			it.next();
+			render = it.render();
+		}
+
+		// print using ms
+		gettimeofday(&stopTime, NULL);
+		long elapsed =
+			((stopTime.tv_sec - startTime.tv_sec) * 1000000 + (stopTime.tv_usec - startTime.tv_usec)) / 1000;
+		AFCommon::QueueLog("end sync renders info to kafka using ms: " + std::to_string(elapsed));
+
+		af::sleep_sec(elapsed >= syncKafkaIntervalSec ? 0 : syncKafkaIntervalSec - elapsed);
+		cycle++;
+	}
+}
+#endif

@@ -216,6 +216,10 @@ public:
 	static inline int getRLimit_NPROC()  { return rlimit_NPROC;  }
 
 
+	static inline const std::string & getKafkaAddress()      { return kafkaaddress;       }
+	static inline const int getSyncKafkaIntervalSec()      { return sync_kafka_interval_sec;       }
+	static inline const int getSyncAllRendersPeriod()      { return sync_all_renders_period;       }
+	static inline const int getRegionId()      { return region_id;       }
 private:
 
 	static bool m_valid;            ///< \c true if environment is valid.
@@ -399,6 +403,10 @@ private:
 	static int rlimit_NOFILE;
 	static int rlimit_NPROC;
 
+	static std::string kafkaaddress;
+	static int sync_kafka_interval_sec;
+	static int sync_all_renders_period;
+	static int region_id;
 
 	// Misc:
 

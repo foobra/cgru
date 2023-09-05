@@ -75,6 +75,8 @@ public:
 
 	bool jsonRead( const JSON & i_object, std::string * io_changes = NULL);
 
+	std::string getInfoStr(int regionId);
+	void stateChange(std::string topicName, int regionId);
 	// Needed for GUI only:
 	std::vector<int32_t> m_tasks_percents;
 
@@ -118,5 +120,6 @@ private:
 
 protected:
    void v_readwrite( Msg * msg); ///< Read or write Render in message.
+   void v_jsonWriteWithHostRes(std::ostringstream & o_str, int i_type) const;
 };
 }

@@ -45,8 +45,7 @@ af::Msg * RenderContainer::addRender(RenderAf * newRender, PoolsContainer * i_po
                AFCommon::QueueLogError( errLog);
                delete newRender;
 
-					af::RenderEvents re(af::RenderEvents::RE_Status_Exit, "Render with the same name exists.");
-					return new af::Msg(af::Msg::TRenderEvents, &re);
+				return render->writeConnectedMsg("Render became online.");
             }
             // Offline render with the same hostname found:
             else

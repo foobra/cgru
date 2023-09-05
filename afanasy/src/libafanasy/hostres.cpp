@@ -207,6 +207,12 @@ void HostRes::jsonWrite( std::ostringstream & o_str) const
 	o_str << "\n}";
 }
 
+void HostRes::jsonWriteCpu( std::ostringstream & o_str) const
+{
+	o_str << "\n\"cpu_num\":"  << cpu_num;
+	o_str << ",\n\"cpu_mhz\":" << cpu_mhz;
+	o_str << ",\n\"mem_total_mb\":"   << mem_total_mb <<",";
+}
 void HostRes::v_readwrite( Msg * msg)
 {
     rw_int32_t( cpu_num,      msg);

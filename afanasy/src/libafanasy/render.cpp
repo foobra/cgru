@@ -4,6 +4,7 @@
 #include "environment.h"
 #include "msg.h"
 #include "taskexec.h"
+#include "afkafka.h"
 
 #define AFOUTPUT
 #undef AFOUTPUT
@@ -129,6 +130,69 @@ void Render::v_jsonWrite( std::ostringstream & o_str, int i_type) const // Threa
 	o_str << "\n}";
 }
 
+void Render::v_jsonWriteWithHostRes(std::ostringstream & o_str, int i_type) const // Thread-safe
+{
+    o_str << "{";
+
+	if( isOnline())
+	{
+		m_hres.jsonWriteCpu( o_str);
+	}
+
+    // Write running tasks percents in any case:
+    if( m_tasks.size())
+    {
+        o_str << "\n\"tasks_percents\":[";
+        bool first = true;
+        for( std::list<TaskExec*>::const_iterator it = m_tasks.begin(); it != m_tasks.end(); it++)
+        {
+            if( false == first )
+                o_str << ",\n";
+            else
+                first = false;
+
+            o_str << (*it)->getPercent();
+        }
+        o_str << "\n],";
+    }
+
+    Client::v_jsonWrite( o_str, i_type);
+
+    o_str << ",\n\"pool\":\"" << m_pool << "\"";
+
+    o_str << ",\n\"st\":" << m_state;
+    o_str << ",\n";
+    jw_stateRender(m_state, o_str);
+
+    o_str << ",\n\"capacity_used\":" << m_capacity_used;
+    o_str << ",\n\"task_start_finish_time\":" << m_task_start_finish_time;
+    if( m_wol_operation_time > 0 )
+        o_str << ",\n\"wol_operation_time\":" << m_wol_operation_time;
+    o_str << ",\n\"idle_time\":" << m_idle_time;
+    o_str << ",\n\"busy_time\":" << m_busy_time;
+
+    // Write tasks if any.
+    // We do not need to store tasks on hdd (when type is zero).
+    if( m_tasks.size() && ( i_type != 0 ))
+    {
+        o_str << ",\n\"tasks\":[";
+        bool first = true;
+        for( std::list<TaskExec*>::const_iterator it = m_tasks.begin(); it != m_tasks.end(); it++)
+        {
+            if( false == first )
+                o_str << ",\n";
+            else
+                first = false;
+
+            (*it)->jsonWrite( o_str, i_type);
+        }
+        o_str << "\n]";
+    }
+
+    Farm::jsonWrite(o_str, i_type);
+
+    o_str << "\n}";
+}
 bool Render::jsonRead( const JSON &i_object, std::string * io_changes)
 {
 	if( false == i_object.IsObject())
@@ -196,7 +260,7 @@ void Render::v_readwrite( Msg * msg) // Thread-safe
 		rw_String (m_srv_info,               msg);
 
 	case Msg::TRenderRegister:
- 
+
 		// Writing tasks execs, needed for:
 		// - GUIs to show tasks in render item.
 		// - Server for running tasks reconnection at startup.
@@ -267,6 +331,105 @@ void Render::v_readwrite( Msg * msg) // Thread-safe
 		 else m_netIFs.push_back( new NetIF( msg));
    }
 
+}
+/*
+std::string Render::getInfoStr(std::string keyName)
+{
+		std::ostringstream ostr;
+		v_jsonWrite( ostr, 0);
+		std::string renderaf_info = ostr.str();
+		//AF_LOG << renderaf_info;
+
+		int pos_start = renderaf_info.find(keyname);
+		AF_LOG << "startPos:" << pos_start;
+		int pos_sep = renderaf_info.find(':',pos_start);
+		AF_LOG << "pos_sep:" << pos_sep;
+		int pos_end = renderaf_info.find(',',pos_start);
+	    char ch = renderaf_info.at(pos_end-1);
+		AF_LOG << "endPos:" << pos_end;
+		int pos1 = 0;
+		int offsize = 0;
+		if(ch == '"')//判断数字还是字符，结尾不同
+		{
+			pos1 = pos_sep + 2;
+			offsize = pos_end - pos1 - 1;
+		}
+		else
+		{
+			pos1 = pos_sep + 1;
+			offsize = pos_end - pos1;
+		}
+		int total_len = renderaf_info.length();
+		AF_LOG << "total_len:" << total_len;
+		std::string info_str;
+		if(pos1<total_len && (pos1+offsize)<total_len )
+		{
+			info_str = renderaf_info.substr(pos1,offsize);
+		   AF_LOG << "nameStr:" << info_str;
+
+			return info_str;
+
+		}
+		return info_str;
+}
+*/
+
+std::string Render::getInfoStr(int regionId)
+{
+	std::ostringstream ostr;
+    v_jsonWriteWithHostRes( ostr, 0);
+	std::string renderaf_info = ostr.str();
+	AF_LOG << renderaf_info;
+
+	int pos_start, pos_end, offsize;
+	std::string info_str;
+	std::list<std::string> keyNameList;
+	keyNameList.push_back("id");
+	keyNameList.push_back("name");
+	keyNameList.push_back("priority");
+	keyNameList.push_back("user_name");
+	keyNameList.push_back("time_register");
+	keyNameList.push_back("time_launch");
+	keyNameList.push_back("time_update");
+	keyNameList.push_back("os");
+	keyNameList.push_back("ip");
+	keyNameList.push_back("state");
+	keyNameList.push_back("job_id");
+	keyNameList.push_back("cpu_num");
+	keyNameList.push_back("mem_total_mb");
+
+
+    info_str.append("\"region_id\":" + std::to_string(regionId) + ",");
+	int total_len = renderaf_info.length();
+	//AF_LOG << "total_len:" << total_len;
+	for( std::list<std::string>::const_iterator it = keyNameList.begin(); it != keyNameList.end(); it++)
+	{
+		pos_start = renderaf_info.find(*it);
+		pos_end = renderaf_info.find(',',pos_start);
+		offsize = pos_end - pos_start;
+		//AF_LOG << "pos_start:" << pos_start;
+		//AF_LOG << "pos_end:" << pos_end;
+		//AF_LOG << "offsize:" << offsize;
+		if(1<pos_start && offsize > 0 && pos_start<total_len && (pos_start+offsize+2)<total_len )
+		{
+			std::string temp_str = renderaf_info.substr(pos_start-1,offsize+2);
+			//temp_str.erase(std::remove(temp_str.begin(), temp_str.end(), '"'), temp_str.end());
+			info_str.append(temp_str);
+			//AF_LOG << "nameStr:" << info_str;
+		}
+	}
+
+	info_str.insert(info_str.begin(),'{');
+	info_str.erase(--info_str.end());
+	info_str.insert(info_str.end(),'}');
+	AF_LOG << info_str;
+	return info_str;
+}
+
+void Render::stateChange(std::string topicName, int regionId)
+{
+	std::string infoStr = getInfoStr(regionId);
+	af::AfKafka::getInstance()->sendKafkaMessage(getName(), infoStr, topicName);
 }
 
 void Render::checkDirty()

@@ -184,6 +184,10 @@ const int SO_CLIENT_TCP_NODELAY /***/ = -1;
 const int SO_CLIENT_TCP_CORK /******/ = -1;
 }
 
+namespace AFKAFKA
+{
+const char KAFKA_ADDRESS[] = "127.0.0.1:9092";
+}
 #ifdef WINNT
 #define WINNT_TOCHAR (char *)
 #else

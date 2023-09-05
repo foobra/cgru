@@ -186,6 +186,7 @@ private:
 
 	// Check resources, on overflow emit RENDER_OVERLOAD event
 	bool checkOverload();
+	std::string getInfoStr(std::string keyName);
 
 private:
 	std::list<std::string> m_tasks_log;							///< Tasks Log.

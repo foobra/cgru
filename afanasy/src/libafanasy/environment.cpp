@@ -204,6 +204,10 @@ std::string Environment::version_python;
 std::string Environment::version_gcc;
 std::string Environment::build_date;
 
+std::string Environment::kafkaaddress = AFKAFKA::KAFKA_ADDRESS;
+int Environment::sync_kafka_interval_sec = 5;
+int Environment::sync_all_renders_period = 3;
+int Environment::region_id = -1;
 void Environment::getVars( const JSON * i_obj)
 {
 	if( i_obj && ( false == i_obj->IsObject()))
@@ -218,6 +222,7 @@ void Environment::getVars( const JSON * i_obj)
 	getVar( i_obj, digest_file,                       "af_digest_file"                       );
 	getVar( i_obj, digest_realm,                      "realm"                                );
 	getVar( i_obj, serverport,                        "af_serverport"                        );
+	getVar( i_obj, kafkaaddress,                      "af_kafkaaddress"                      );
 
 	getVar(i_obj, http_serve_dir,                     "af_http_serve_dir"                    );
 	getVar(i_obj, http_site_index,                    "af_http_site_index"                   );
@@ -319,6 +324,9 @@ void Environment::getVars( const JSON * i_obj)
 	getVar( i_obj, sysjob_events_service,             "af_sysjob_events_service"             );
 
 	getVar( i_obj, wolwake_interval,                  "af_wolwake_interval"                  );
+	getVar( i_obj, sync_kafka_interval_sec,           "af_sync_kafka_interval_sec"                  );
+	getVar( i_obj, sync_all_renders_period,           "af_sync_all_renders_period"                  );
+	getVar( i_obj, region_id,                         "region_id"                  );
 }
 
 const std::string Environment::getVarEnv( const char * i_name)

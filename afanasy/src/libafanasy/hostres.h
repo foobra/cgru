@@ -89,5 +89,6 @@ public:
 	void v_readwrite( Msg * msg); ///< Read or write Host Resources in message.
 
 	std::vector<HostResMeter*> custom;
+	void jsonWriteCpu( std::ostringstream & o_str) const;
 };
 }
