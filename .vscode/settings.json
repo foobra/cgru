@@ -1,3 +1,4 @@
 {
-    "cmake.sourceDirectory": "/home/jtang/Projects/cgru/afanasy/src/project.cmake"
+    "cmake.sourceDirectory": "/home/jtang/Projects/cgru/afanasy/src/project.cmake",
+    "C_Cpp.default.configurationProvider": "go2sh.cmake-integration"
 }
