@@ -20,8 +20,8 @@ Makefile
 *.VC.db
 *.VC.opendb
 .vs
-Debug
-Release
+./Debug
+./Release
 ipch
 x64/
 enc_temp_folder/
