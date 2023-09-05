@@ -40,9 +40,9 @@ AfKafka::~AfKafka()
 		delete producer;
 }
 
-AfKafka *AfKafka::getInstance()
+AfKafka &AfKafka::getInstance()
 {
-	static AfKafka *afKafka = new AfKafka();
+	static AfKafka afKafka;
 	return afKafka;
 }
 

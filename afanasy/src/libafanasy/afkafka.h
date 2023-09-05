@@ -17,7 +17,7 @@ public:
 
 	inline RdKafka::Producer *getProducer() { return producer; }
 	inline bool isSuccessInit() { return successInit; }
-	static AfKafka *getInstance();
+	static AfKafka &getInstance();
 	void sendKafkaMessage(const std::string &key, const std::string &infoStr, const std::string &topic);
 
 private:

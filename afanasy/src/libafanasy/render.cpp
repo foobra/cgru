@@ -429,7 +429,7 @@ std::string Render::getInfoStr(int regionId)
 void Render::stateChange(std::string topicName, int regionId)
 {
 	std::string infoStr = getInfoStr(regionId);
-	af::AfKafka::getInstance()->sendKafkaMessage(getName(), infoStr, topicName);
+	af::AfKafka::getInstance().sendKafkaMessage(getName(), infoStr, topicName);
 }
 
 void Render::checkDirty()
